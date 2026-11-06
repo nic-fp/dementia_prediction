@@ -3,4 +3,4 @@ This repository contains the work for my EoY project in AI in Healthcare. For th
 
 
 
-Credit to https://github.com/shreyasgite/dementianet for all data.
+Credit to https://github.com/shreyasgite/dementianet for all data. All data can be downloaded from this Github. 
