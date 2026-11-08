@@ -9,8 +9,13 @@ dependencies = [
     "faster-whisper>=1.2.1",
     "librosa>=1.0.0",
     "matplotlib>=3.11.2",
+    "nltk>=3.10.4",
     "numpy>=2.5.4",
     "pandas>=3.1.1",
+    "scikit-learn>=1.9.1",
     "scipy>=1.18.1",
     "soundfile>=0.14.0",
+    "textstat>=0.7.13",
+    "torch>=2.15.0",
+    "xgboost>=3.4.1",
 ]
