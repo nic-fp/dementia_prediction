@@ -9,7 +9,7 @@ import pandas as pd
 SAMPLE_RATE = 44100
 DURATION = 45
 TARGET_LENGTH = SAMPLE_RATE * DURATION
-BATCH_SIZE = 2
+BATCH_SIZE = 8
 
 class CNN(torch.nn.Module):
     def __init__(self, in_channels,  hidden_layer_size = 64, num_hidden_layers = 4):
@@ -56,7 +56,7 @@ class SpectrogramDataset(Dataset):
     def __getitem__(self, idx):
         row = self.df.iloc[idx]
 
-        path = row['path']
+        path = row['google_path']
         audio = process_audio_file(path)
 
         label = torch.tensor(row['final_label'].astype('float32')).unsqueeze(0) #unsqueeze for batchsize
@@ -119,7 +119,7 @@ def train(train_loader, val_loader):
     HIDDEN_LAYER_SIZE = 64
     NUM_HIDDEN_LAYERS = 4
 
-    NUM_EPOCHS = 3
+    NUM_EPOCHS = 30
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model = CNN(in_channels=IN_CHANNEL, hidden_layer_size=HIDDEN_LAYER_SIZE, num_hidden_layers=NUM_HIDDEN_LAYERS)
@@ -173,8 +173,9 @@ def train(train_loader, val_loader):
             save_model(model)
         
 def main():
-    train_data = pd.read_csv('data/tabular/train_data.csv')
-    test_data = pd.read_csv('data/tabular/val_data.csv')
+    # _2 has the google path for training in colab
+    train_data = pd.read_csv('data/train_dm_transcribed_2.csv')
+    test_data = pd.read_csv('data/val_dm_transcribed_2.csv')
     train_dataset = SpectrogramDataset(train_data)
 
     train_size = int(0.8 * len(train_dataset))
