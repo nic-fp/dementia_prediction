@@ -109,7 +109,11 @@ def process_audio_file(path):
         mel_db,
         dtype=torch.float32
     ).unsqueeze(0)
-    
+
+def save_model(model):
+    output_path = f"results/cnn/model/cnn.th"
+    torch.save(model.state_dict(), output_path) 
+
 def train(train_loader, val_loader): 
     IN_CHANNEL = 1
     HIDDEN_LAYER_SIZE = 64
@@ -123,7 +127,7 @@ def train(train_loader, val_loader):
     model.to(device)
     optim = torch.optim.AdamW(model.parameters(), lr = .005)
     loss_fn =  torch.nn.BCEWithLogitsLoss()
-
+    best = 0
     for epoch in range(NUM_EPOCHS):
         print(f"{epoch=}")
         model.train()
@@ -165,6 +169,8 @@ def train(train_loader, val_loader):
             
         print(f"Val acc : {np.mean(val_accuracy)}")
         print(f"Val loss : {np.mean(val_losses)}")
+        if np.mean(val_accuracy) > best: 
+            save_model(model)
         
 def main():
     train_data = pd.read_csv('data/tabular/train_data.csv')
