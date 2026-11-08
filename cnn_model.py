@@ -174,8 +174,8 @@ def train(train_loader, val_loader):
         
 def main():
     # _2 has the google path for training in colab
-    train_data = pd.read_csv('data/train_dm_transcribed_2.csv')
-    test_data = pd.read_csv('data/val_dm_transcribed_2.csv')
+    train_data = pd.read_csv('/content/drive/My Drive/data/train_dm_transcribed_2.csv')
+    test_data = pd.read_csv('/content/drive/My Drive/data/val_dm_transcribed_2.csv')
     train_dataset = SpectrogramDataset(train_data)
 
     train_size = int(0.8 * len(train_dataset))
