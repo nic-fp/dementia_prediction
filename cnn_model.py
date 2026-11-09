@@ -109,11 +109,11 @@ def process_audio_file(path, duration, sample_rate):
         dtype=torch.float32
     ).unsqueeze(0)
 
-def save_model(model):
-    output_path = f"results/cnn/model/cnn.th"
+def save_model(model,duration):
+    output_path = f"results/cnn/model/cnn_{duration}.th"
     torch.save(model.state_dict(), output_path) 
 
-def train(train_loader, val_loader, num_epochs): 
+def train(train_loader, val_loader, num_epochs,duration): 
     IN_CHANNEL = 1
     HIDDEN_LAYER_SIZE = 64
     NUM_HIDDEN_LAYERS = 4
@@ -169,7 +169,7 @@ def train(train_loader, val_loader, num_epochs):
         print(f"Val acc : {np.mean(val_accuracy)}")
         print(f"Val loss : {np.mean(val_losses)}")
         if np.mean(val_accuracy) > best: 
-            save_model(model)
+            save_model(model,duration)
         writer.add_scalar("Loss/train", np.mean(losses), epoch)
         writer.add_scalar("Loss/validation", np.mean(val_losses), epoch)
 
@@ -195,7 +195,7 @@ def main(num_epochs=30, learning_rate=.001,duration=45, sample_rate=44100, batch
     train_loader = DataLoader(train_dataset, batch_size = batch_size, shuffle=True)
     val_loader = DataLoader(val_dataset, batch_size = batch_size, shuffle=True)
 
-    train(train_loader, val_loader, num_epochs)
+    train(train_loader, val_loader, num_epochs,duration)
 
 
 
