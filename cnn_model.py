@@ -113,7 +113,7 @@ def save_model(model,duration):
     output_path = f"results/cnn/model/cnn_{duration}.th"
     torch.save(model.state_dict(), output_path) 
 
-def train(train_loader, val_loader, num_epochs,duration): 
+def train(train_loader, val_loader, num_epochs,duration,learning_rate): 
     IN_CHANNEL = 1
     HIDDEN_LAYER_SIZE = 64
     NUM_HIDDEN_LAYERS = 4
@@ -123,7 +123,7 @@ def train(train_loader, val_loader, num_epochs,duration):
     model = CNN(in_channels=IN_CHANNEL, hidden_layer_size=HIDDEN_LAYER_SIZE, num_hidden_layers=NUM_HIDDEN_LAYERS)
 
     model.to(device)
-    optim = torch.optim.AdamW(model.parameters(), lr = .005)
+    optim = torch.optim.AdamW(model.parameters(), lr = learning_rate)
     loss_fn =  torch.nn.BCEWithLogitsLoss()
     best = 0
     
@@ -176,8 +176,37 @@ def train(train_loader, val_loader, num_epochs,duration):
         writer.add_scalar("Accuracy/train", np.mean(train_acc), epoch)
         writer.add_scalar("Accuracy/validation", np.mean(val_accuracy), epoch)
 
+def overfit_model(train_loader):
+    IN_CHANNEL = 1
+    HIDDEN_LAYER_SIZE = 64
+    NUM_HIDDEN_LAYERS = 4
+
+    writer = SummaryWriter("logs")
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    model = CNN(in_channels=IN_CHANNEL, hidden_layer_size=HIDDEN_LAYER_SIZE, num_hidden_layers=NUM_HIDDEN_LAYERS)
+
+    model.to(device)
+    optim = torch.optim.AdamW(model.parameters(), lr = .001)
+    loss_fn =  torch.nn.BCEWithLogitsLoss()
+    data, label = next(iter(train_loader))
+    data, label = data.to(device), label.to(device).float().view(-1, 1)
+    model.train()
+    for step in range(1000):
+        output = model(data)
+        loss = loss_fn(output, label)
+
+        optim.zero_grad()
+        loss.backward()
+        optim.step()
+
+        if step % 10 == 0:
+            with torch.no_grad():
+                preds = (torch.sigmoid(output) > 0.5).float()
+                acc = (preds == label).float().mean().item()
+
+            print(f"Step {step}: loss={loss.item():.4f}, accuracy={acc:.3f}")
         
-def main(num_epochs=30, learning_rate=.001,duration=45, sample_rate=44100, batch_size=16):
+def main(num_epochs=30, learning_rate=.001,duration=45, sample_rate=44100, batch_size=16,overfit=False):
     # _2 has the google path for training in colab
     train_data = pd.read_csv('/content/drive/My Drive/data/train_dm_transcribed_2.csv')
     test_data = pd.read_csv('/content/drive/My Drive/data/valid_dm_transcribed_2.csv')
@@ -194,8 +223,10 @@ def main(num_epochs=30, learning_rate=.001,duration=45, sample_rate=44100, batch
     )
     train_loader = DataLoader(train_dataset, batch_size = batch_size, shuffle=True)
     val_loader = DataLoader(val_dataset, batch_size = batch_size, shuffle=True)
-
-    train(train_loader, val_loader, num_epochs,duration)
+    if overfit:
+        overfit_model(train_loader)
+    else:
+        train(train_loader, val_loader, num_epochs,duration,learning_rate)
 
 
 
