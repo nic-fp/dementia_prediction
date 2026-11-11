@@ -28,9 +28,13 @@ class CustomCollator:
 
     #override what happens when we call the collator
     def __call__(self, features):
-        
+        label2id = {
+            'nodementia': 0,
+            'dementia': 1
+        }
+
         audio_features = [i['audio']['array'] for i in features]
-        labels = [i['label'] for i in features]
+        labels = [label2id[i['labels']] for i in features]
         #for each INDIVIDUAL batch we are going to pad to be longest in batch
         #Note how this differs from CNN architecture where we padded all to fixed length
         batch = self.feature_extractor(audio_features, sampling_rate=self.feature_extractor.sampling_rate, 
@@ -56,7 +60,7 @@ def load_model(model_name):
         num_labels=2,
         
         #ignore_mismatched_sizes=True,
-        #these are used by the trainer so I don't have to encode!
+        #these are used by the trainer for labelling I sitll need to convert later
         label2id={'nodementia': 0, 'dementia': 1},
         id2label={0: 'nodementia', 1: 'dementia'}
     )
