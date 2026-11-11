@@ -6,6 +6,8 @@ readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
     "av==18.1.0",
+    "datasets>=5.2.0",
+    "evaluate>=0.4.6",
     "faster-whisper>=1.2.1",
     "fire>=0.7.1",
     "librosa>=1.0.0",
@@ -16,7 +18,10 @@ dependencies = [
     "scikit-learn>=1.9.1",
     "scipy>=1.18.1",
     "soundfile>=0.14.0",
+    "tensorboard>=2.21.0",
     "textstat>=0.7.13",
     "torch>=2.15.0",
+    "torchcodec>=0.17.0",
+    "transformers[torch]>=5.22.2",
     "xgboost>=3.4.1",
 ]
