@@ -38,14 +38,15 @@ class CustomCollator:
         batch['labels'] = torch.tensor(labels,dtype=torch.long)
         return batch
 
-def get_dataset(model_name, data_path):
+def get_dataset(model_name, data_path,in_colab):
     dataset = load_dataset("csv",data_files=data_path)
     dataset = dataset["train"]
+    path = 'google_path' if in_colab else 'path'
     #weird bug where it loads the path col as LongString instead. So you have to cast to string then cast to audio otherwise errors
-    dataset = dataset.cast_column("path", Value("string"))
-    dataset = dataset.cast_column("path", Audio(sampling_rate=16_000))
+    dataset = dataset.cast_column(path, Value("string"))
+    dataset = dataset.cast_column(path, Audio(sampling_rate=16_000))
     #Saw this in docs for conventions
-    dataset = dataset.rename_column("path", "audio")
+    dataset = dataset.rename_column(path, "audio")
     return dataset
 
 def load_model(model_name):
