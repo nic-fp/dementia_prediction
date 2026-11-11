@@ -102,7 +102,7 @@ def main(model_name, in_colab = False):
     """
     Allowed values for model_name are found in the keys in MODELS_DICT
     """
-    train_data = get_dataset(model_name, f'data/train_dm_transcribed{'_2' if in_colab else ''}.csv')
+    train_data = get_dataset(model_name, f'data/train_dm_transcribed{'_2' if in_colab else ''}.csv', in_colab)
     model, feature_extractor = load_model(model_name)
     train_model(model, feature_extractor, train_data, model_name)
 
