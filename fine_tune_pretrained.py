@@ -37,7 +37,7 @@ class CustomCollator:
         labels = [label2id[i['label']] for i in features]
         #for each INDIVIDUAL batch we are going to pad to be longest in batch
         #Note how this differs from CNN architecture where we padded all to fixed length
-        batch = self.feature_extractor(audio_features, sampling_rate=self.feature_extractor.sampling_rate, 
+        batch = self.feature_extractor(audio_features, sampling_rate=16000, max_length=16000*15,
                                        padding=True, return_tensors='pt')
         batch['labels'] = torch.tensor(labels,dtype=torch.long)
         return batch

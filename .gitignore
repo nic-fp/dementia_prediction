@@ -1,5 +1,7 @@
-data/
-data
+data/dementia/
+data/nodementia/
+data/tabular/
+
 
 
 # Byte-compiled / optimized / DLL files
