@@ -97,7 +97,8 @@ def train_model(model,feature_extractor, train_dataset, model_name):
         args=training_args, 
         train_dataset=train_dataset,
         eval_dataset=eval_dataset,
-        data_collator=CustomCollator(feature_extractor)
+        data_collator=CustomCollator(feature_extractor),
+        compute_metrics=compute_metrics
     )
     trainer.train()
     trainer.save_model(f'results/finetune_{model_name}')
