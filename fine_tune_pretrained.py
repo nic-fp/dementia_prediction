@@ -15,7 +15,7 @@ from sklearn.metrics import accuracy_score
 MODELS_DICT = {
     'wav2vec':{'ckpt':'facebook/wav2vec2-base','sr':16000},
     'hubert':{'ckpt':'facebook/hubert-base-ls960','sr':16000},
-    'whisper':{'ckpt':'openai/whisper-base','sr':16000}
+    'wavlm':{'ckpt':'microsoft/wavlm-base-plus','sr':16000}
 }
 
 class CustomCollator:
@@ -28,10 +28,7 @@ class CustomCollator:
 
     #override what happens when we call the collator
     def __call__(self, features):
-        label2id = {
-            'nodementia': 0,
-            'dementia': 1
-        }
+        label2id={'nodementia': 0, 'dementia': 1}
 
         audio_features = [i['audio']['array'] for i in features]
         labels = [label2id[i['label']] for i in features]
@@ -72,6 +69,18 @@ def train_model(model,feature_extractor, train_dataset, model_name):
 
     # Extract your individual datasets
     train_dataset = split_dataset["train"]
+    # for i in range(5):
+    #     sample = train_dataset[i]["audio"]["array"]
+
+    #     print(
+    #         len(sample),
+    #         np.mean(sample),
+    #         np.std(sample),
+    #         np.min(sample),
+    #         np.max(sample)
+    #     )
+    #     print(train_dataset[i]['label'])
+    # return
     eval_dataset = split_dataset["test"]
 
     def compute_metrics(eval_pred):
@@ -86,7 +95,7 @@ def train_model(model,feature_extractor, train_dataset, model_name):
         eval_strategy = "epoch",
         report_to='tensorboard', 
         gradient_checkpointing=True, 
-        learning_rate=.001, 
+        learning_rate=1e-5, 
         num_train_epochs=5, 
         per_device_train_batch_size=4,
         remove_unused_columns=False,
