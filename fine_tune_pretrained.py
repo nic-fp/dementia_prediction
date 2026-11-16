@@ -63,8 +63,17 @@ def load_model(model_name):
     )
     return model, feature_extractor
 
-def train_model(model,feature_extractor, train_dataset, model_name, lr = 1e-5, num_epochs = 5, train_classifier_only = False):
+def print_model_params(model):
+    total = sum(p.numel() for p in model.parameters())
+    trainable = sum(p.numel() for p in model.parameters() if p.requires_grad)
+    non_trainable = total - trainable
 
+    print(f"Total:         {total:,}")
+    print(f"Trainable:     {trainable:,} ({100*trainable/total:.2f}%)")
+    print(f"Non-trainable: {non_trainable:,} ({100*non_trainable/total:.2f}%)")
+
+def train_model(model,feature_extractor, train_dataset, model_name, lr = 1e-5, num_epochs = 5, train_classifier_only = False):
+    
     split_dataset = train_dataset.train_test_split(test_size=0.2, seed=42)
 
     # Extract your individual datasets
@@ -99,6 +108,8 @@ def train_model(model,feature_extractor, train_dataset, model_name, lr = 1e-5, n
         for param in model.classifier.parameters():
             param.requires_grad = True
         name = 'classifier_only'
+
+    print(print_model_params(model))
     training_args = TrainingArguments(
         output_dir=f'results/finetune_{model_name}_{name}', 
         logging_strategy="epoch",
