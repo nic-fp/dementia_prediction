@@ -103,6 +103,7 @@ def train_model(model,feature_extractor, train_dataset, model_name, lr = 1e-5, n
         output_dir=f'results/finetune_{model_name}_{name}', 
         logging_strategy="epoch",
         eval_strategy = "epoch",
+        save_strategy="epoch",
         report_to='tensorboard', 
         gradient_checkpointing=True, 
         learning_rate=lr, 
