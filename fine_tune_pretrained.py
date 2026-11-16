@@ -63,7 +63,7 @@ def load_model(model_name):
     )
     return model, feature_extractor
 
-def train_model(model,feature_extractor, train_dataset, model_name):
+def train_model(model,feature_extractor, train_dataset, model_name, lr = 1e-5, num_epochs = 5, train_classifier_only = False):
 
     split_dataset = train_dataset.train_test_split(test_size=0.2, seed=42)
 
@@ -88,17 +88,30 @@ def train_model(model,feature_extractor, train_dataset, model_name):
         predictions = np.argmax(probs, axis=-1)
         accuracy = accuracy_score(labels, predictions)
         return {"accuracy": accuracy}
-    
+
+    name = 'full_fine_tune'
+    if train_classifier_only:
+        # Freeze backbone
+        for param in model.parameters():
+            param.requires_grad = False
+
+        # Unfreeze classification head
+        for param in model.classifier.parameters():
+            param.requires_grad = True
+        name = 'classifier_only'
     training_args = TrainingArguments(
-        output_dir=f'results/finetune_{model_name}', 
+        output_dir=f'results/finetune_{model_name}_{name}', 
         logging_strategy="epoch",
         eval_strategy = "epoch",
         report_to='tensorboard', 
         gradient_checkpointing=True, 
-        learning_rate=1e-5, 
-        num_train_epochs=5, 
+        learning_rate=lr, 
+        num_train_epochs=num_epochs, 
         per_device_train_batch_size=4,
         remove_unused_columns=False,
+        load_best_model_at_end=True,
+        metric_for_best_model="eval_accuracy", 
+        greater_is_better=True,
 
     )
     trainer = Trainer(
@@ -112,7 +125,7 @@ def train_model(model,feature_extractor, train_dataset, model_name):
     trainer.train()
     trainer.save_model(f'results/finetune_{model_name}')
 
-def main(model_name, in_colab = False):
+def main(model_name, in_colab = False, lr = 1e-5, num_epochs = 5, train_classifier_only = False):
     """
     Allowed values for model_name are found in the keys in MODELS_DICT
     """
