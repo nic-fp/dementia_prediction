@@ -143,7 +143,7 @@ def main(model_name, in_colab = False, lr = 1e-5, num_epochs = 5, train_classifi
     """
     train_data = get_dataset(model_name, f'data/train_dm_transcribed{'_2' if in_colab else ''}.csv', in_colab)
     model, feature_extractor = load_model(model_name)
-    train_model(model, feature_extractor, train_data, model_name)
+    train_model(model, feature_extractor, train_data, model_name, lr, num_epochs, train_classifier_only)
 
 
 if __name__ == "__main__":
