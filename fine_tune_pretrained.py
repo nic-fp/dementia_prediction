@@ -5,10 +5,11 @@ from transformers import (
     TrainingArguments,
     Trainer,
 )
+from scipy.special import softmax
+from sklearn.metrics import accuracy_score, roc_auc_score
 import fire
 import torch
 import numpy as np
-from sklearn.metrics import accuracy_score
 
 
 
@@ -78,6 +79,7 @@ def train_model(model,feature_extractor, train_dataset, model_name, lr = 1e-5, n
 
     # Extract your individual datasets
     train_dataset = split_dataset["train"]
+
     # for i in range(5):
     #     sample = train_dataset[i]["audio"]["array"]
 
@@ -108,7 +110,6 @@ def train_model(model,feature_extractor, train_dataset, model_name, lr = 1e-5, n
         for param in model.classifier.parameters():
             param.requires_grad = True
         name = 'classifier_only'
-
     print(print_model_params(model))
     training_args = TrainingArguments(
         output_dir=f'results/finetune_{model_name}_{name}', 
@@ -134,16 +135,56 @@ def train_model(model,feature_extractor, train_dataset, model_name, lr = 1e-5, n
         data_collator=CustomCollator(feature_extractor),
         compute_metrics=compute_metrics
     )
-    trainer.train()
-    trainer.save_model(f'results/finetune_{model_name}')
 
-def main(model_name, in_colab = False, lr = 1e-5, num_epochs = 5, train_classifier_only = False):
+    trainer.train()
+    trainer.save_model(f'results/finetune_{model_name}_{name}')
+
+def eval_model(model_name, in_colab):
+    feature_extractor = AutoFeatureExtractor.from_pretrained('facebook/wav2vec2-base')
+    model = AutoModelForAudioClassification.from_pretrained(
+        './results/finetune_wav2vec_15s_full_fine_tune',
+        local_files_only=True,
+        num_labels=2,
+        
+        # #ignore_mismatched_sizes=True,
+        # #these are used by the trainer for labelling I sitll need to convert later
+        label2id={'nodementia': 0, 'dementia': 1},
+        id2label={0: 'nodementia', 1: 'dementia'}
+    )
+    test_data = get_dataset(model_name, f'data/valid_dm_transcribed{'_2' if in_colab else ''}.csv', in_colab)
+
+    trainer = Trainer(model=model,data_collator=CustomCollator(feature_extractor),args=TrainingArguments(
+        output_dir='./eval_results',
+        remove_unused_columns=False
+    ))
+    predictions = trainer.predict(test_data)
+
+    # Extract logits and true labels
+    logits = predictions.predictions
+    labels = predictions.label_ids
+
+    # 1. Compute ROC-AUC (using probabilities)
+    probs = softmax(logits, axis=-1)[:, 1]
+    auc_score = roc_auc_score(labels, probs)
+
+    # 2. Compute Accuracy (using highest logit class prediction)
+    preds = np.argmax(logits, axis=-1)
+    acc_score = accuracy_score(labels, preds)
+
+    print(f"ROC-AUC Score:  {auc_score:.4f}")
+    print(f"Accuracy Score: {acc_score:.4f}")
+
+def main(model_name, in_colab = False, lr = 1e-5, num_epochs = 5, train_classifier_only = False, eval=False):
     """
     Allowed values for model_name are found in the keys in MODELS_DICT
     """
-    train_data = get_dataset(model_name, f'data/train_dm_transcribed{'_2' if in_colab else ''}.csv', in_colab)
-    model, feature_extractor = load_model(model_name)
-    train_model(model, feature_extractor, train_data, model_name, lr, num_epochs, train_classifier_only)
+    if eval:
+        print('evaluating')
+        eval_model(model_name, in_colab)
+    else:
+        train_data = get_dataset(model_name, f'data/train_dm_transcribed{'_2' if in_colab else ''}.csv', in_colab)
+        model, feature_extractor = load_model(model_name)
+        train_model(model, feature_extractor, train_data, model_name, lr, num_epochs, train_classifier_only)
 
 
 if __name__ == "__main__":
